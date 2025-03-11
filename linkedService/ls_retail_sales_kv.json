@@ -1,0 +1,10 @@
+{
+	"name": "ls_retail_sales_kv",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://retail-sales-kv.vault.azure.net/"
+		}
+	}
+}
