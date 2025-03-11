@@ -5,11 +5,11 @@
 		"type": "SqlServer",
 		"typeProperties": {
 			"server": "ARUN",
-			"database": "test",
+			"database": "Retail_Sales",
 			"encrypt": "mandatory",
 			"trustServerCertificate": true,
 			"authenticationType": "SQL",
-			"userName": "arunkumar",
+			"userName": "arun",
 			"password": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
