@@ -1,0 +1,21 @@
+{
+	"name": "ls_op_sql_server",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "ARUN",
+			"database": "test",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "arunkumar",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4ZmMxMDkxNS04NmRhLTQyZmEtODE2MC1mMzM5MzYxNWZkMTEiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IR-Retail-SQL-Server",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,9 @@
+{
+	"name": "Retail-Sales-ADF",
+	"location": "canadacentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "01f2520a-1285-445d-855f-e44af2519fad",
+		"tenantId": "ff05faeb-f1fd-4af8-9f9f-5541837df902"
+	}
+}
