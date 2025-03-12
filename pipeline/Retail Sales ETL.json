@@ -24,6 +24,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobStorageReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -132,7 +133,7 @@
 				}
 			},
 			{
-				"name": "Copy data2",
+				"name": "Copy data1_copy1",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -145,13 +146,9 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "RestSource",
-						"httpRequestTimeout": "00:01:40",
-						"requestInterval": "00.00:00:00.010",
-						"requestMethod": "GET",
-						"paginationRules": {
-							"supportRFC5988": "true"
-						}
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
 					},
 					"sink": {
 						"type": "DelimitedTextSink",
@@ -166,76 +163,24 @@
 						}
 					},
 					"enableStaging": false,
-					"validateDataConsistency": false,
 					"translator": {
 						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"path": "$['SaleID']"
-								},
-								"sink": {
-									"name": "SaleID",
-									"type": "Int64"
-								}
-							},
-							{
-								"source": {
-									"path": "$['CustomerID']"
-								},
-								"sink": {
-									"name": "CustomerID",
-									"type": "Int64"
-								}
-							},
-							{
-								"source": {
-									"path": "$['ProductID']"
-								},
-								"sink": {
-									"name": "ProductID",
-									"type": "Int64"
-								}
-							},
-							{
-								"source": {
-									"path": "$['SaleDate']"
-								},
-								"sink": {
-									"name": "SaleDate",
-									"type": "String"
-								}
-							},
-							{
-								"source": {
-									"path": "$['Quantity']"
-								},
-								"sink": {
-									"name": "Quantity",
-									"type": "Int64"
-								}
-							},
-							{
-								"source": {
-									"path": "$['TotalAmount']"
-								},
-								"sink": {
-									"name": "TotalAmount",
-									"type": "Decimal"
-								}
-							}
-						]
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
 					}
 				},
 				"inputs": [
 					{
-						"referenceName": "ds_RestAPI",
+						"referenceName": "ds_product",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "ds_raw_json",
+						"referenceName": "ds_raw_products",
 						"type": "DatasetReference"
 					}
 				]
