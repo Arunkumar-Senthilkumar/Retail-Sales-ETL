@@ -60,7 +60,10 @@
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "CustomerFile",
-								"value": "No New Customers"
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
 							}
 						}
 					],
