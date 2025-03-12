@@ -1,0 +1,21 @@
+{
+	"name": "ls_retailsalesadlsgen2",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://salesretailadls.dfs.core.windows.net/",
+			"tenant": "ff05faeb-f1fd-4af8-9f9f-5541837df902",
+			"servicePrincipalId": "ab3ae891-c481-4711-b60f-e10e84c3da24",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"servicePrincipalCredential": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_retail_sales_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "retail-secret"
+			}
+		}
+	}
+}
