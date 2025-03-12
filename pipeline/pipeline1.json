@@ -16,9 +16,13 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "SqlServerSource",
-						"queryTimeout": "02:00:00",
-						"partitionOption": "None"
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
 					},
 					"sink": {
 						"type": "DelimitedTextSink",
@@ -33,24 +37,76 @@
 						}
 					},
 					"enableStaging": false,
+					"validateDataConsistency": false,
 					"translator": {
 						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
+						"mappings": [
+							{
+								"source": {
+									"path": "$['SaleID']"
+								},
+								"sink": {
+									"name": "SaleID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['CustomerID']"
+								},
+								"sink": {
+									"name": "CustomerID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ProductID']"
+								},
+								"sink": {
+									"name": "ProductID",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['SaleDate']"
+								},
+								"sink": {
+									"name": "SaleDate",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Quantity']"
+								},
+								"sink": {
+									"name": "Quantity",
+									"type": "Int64"
+								}
+							},
+							{
+								"source": {
+									"path": "$['TotalAmount']"
+								},
+								"sink": {
+									"name": "TotalAmount",
+									"type": "Decimal"
+								}
+							}
+						]
 					}
 				},
 				"inputs": [
 					{
-						"referenceName": "ds_product",
+						"referenceName": "ds_RestAPI",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "ds_raw_products",
+						"referenceName": "ds_raw_json",
 						"type": "DatasetReference"
 					}
 				]
