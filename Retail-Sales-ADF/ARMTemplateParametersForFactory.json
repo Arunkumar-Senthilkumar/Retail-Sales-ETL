@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "Retail-Sales-ADF"
+		},
+		"ls_RestAPI_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com"
+		},
+		"ls_backenddataadls_properties_typeProperties_serviceEndpoint": {
+			"value": "https://backenddataadls.blob.core.windows.net/"
+		},
+		"ls_backenddataadls_properties_typeProperties_tenant": {
+			"value": "ff05faeb-f1fd-4af8-9f9f-5541837df902"
+		},
+		"ls_backenddataadls_properties_typeProperties_servicePrincipalId": {
+			"value": "ab3ae891-c481-4711-b60f-e10e84c3da24"
+		},
+		"ls_op_sql_server_properties_typeProperties_server": {
+			"value": "ARUN"
+		},
+		"ls_op_sql_server_properties_typeProperties_database": {
+			"value": "Retail_Sales"
+		},
+		"ls_op_sql_server_properties_typeProperties_userName": {
+			"value": "arun"
+		},
+		"ls_retail_sales_kv_properties_typeProperties_baseUrl": {
+			"value": "https://retail-sales-kv.vault.azure.net/"
+		},
+		"ls_retailsalesadlsgen2_properties_typeProperties_url": {
+			"value": "https://salesretailadls.dfs.core.windows.net/"
+		},
+		"ls_retailsalesadlsgen2_properties_typeProperties_tenant": {
+			"value": "ff05faeb-f1fd-4af8-9f9f-5541837df902"
+		},
+		"ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId": {
+			"value": "ab3ae891-c481-4711-b60f-e10e84c3da24"
+		}
+	}
+}
