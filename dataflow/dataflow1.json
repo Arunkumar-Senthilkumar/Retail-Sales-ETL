@@ -17,6 +17,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "source2"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sales",
+						"type": "DatasetReference"
+					},
+					"name": "source3"
 				}
 			],
 			"sinks": [
@@ -59,6 +66,9 @@
 				},
 				{
 					"name": "derivedColumn3"
+				},
+				{
+					"name": "filter3"
 				}
 			],
 			"scriptLines": [
@@ -83,6 +93,17 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> source2",
+				"source(output(",
+				"          SaleID as integer,",
+				"          CustomerID as integer,",
+				"          ProductID as integer,",
+				"          SaleDate as date,",
+				"          Quantity as integer,",
+				"          TotalAmount as decimal(18,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source3",
 				"source1 filter(!isNull(CustomerID)) ~> filter1",
 				"filter1 aggregate(groupBy(CustomerID),",
 				"     customer_count = count(CustomerID)<=1,",
@@ -103,6 +124,7 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join1",
 				"join1 derive(Price = iif(Price==0.0,CategoryPriceAvug, Price)) ~> derivedColumn3",
+				"source3 filter(!isNull(CustomerID)) ~> filter3",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'parquet',",
