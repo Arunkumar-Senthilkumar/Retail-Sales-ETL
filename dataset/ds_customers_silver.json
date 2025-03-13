@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "Customers",
+				"fileName": "Customers.csv",
 				"fileSystem": "silver"
 			},
 			"compressionCodec": "snappy"

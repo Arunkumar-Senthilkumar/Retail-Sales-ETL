@@ -29,23 +29,15 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "ds_silver",
+						"referenceName": "ds_silver_customer",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
 				},
 				{
-					"dataset": {
-						"referenceName": "ds_silver",
-						"type": "DatasetReference"
-					},
 					"name": "sink2"
 				},
 				{
-					"dataset": {
-						"referenceName": "ds_silver",
-						"type": "DatasetReference"
-					},
 					"name": "sink3"
 				}
 			],
@@ -83,12 +75,12 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          CustomerID as integer '000',",
+				"          CustomerID as integer,",
 				"          CustomerName as string,",
 				"          Email as string,",
 				"          Phone as string,",
 				"          City as string,",
-				"          Country as string",
+				"          {{Country} as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
@@ -141,8 +133,10 @@
 				"          SaleDate = iif(isNull(SaleDate),toDate(\"2000-01-01\"),SaleDate)) ~> derivedColumn4",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'parquet',",
-				"     partitionFileNames:['customers.csv'],",
+				"     input(",
+				"          {PAR1\u0015\u0000\u0015�\u0005\u0015�\u0005\u0015�Ȟ�\u0002\u001c\u0015�\u0001\u0015\u0000\u0015\u0006\u0015\b\u0000\u0000�\u00028\u0003\u0000\u0000\u0000�\u0001\u0001\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0001\u000f�3\u0001\u0004\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0006\u0000\u0000\u0000\u0007\u0000\u0000\u0000\b\u0000\u0000\u0000     \u0000\u0000\u0000} as string",
+				"     ),",
+				"     partitionFileNames:['customers'],",
 				"     umask: 0222,",
 				"     preCommands: [],",
 				"     postCommands: [],",
@@ -156,14 +150,11 @@
 				"          City,",
 				"          Country",
 				"     ),",
-				"     partitionBy('hash', 1)) ~> sink1",
+				"     partitionBy('hash', 1),",
+				"     format: 'parquet') ~> sink1",
 				"derivedColumn3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'parquet',",
 				"     partitionFileNames:['Products.csv'],",
-				"     umask: 0222,",
-				"     preCommands: [],",
-				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     mapColumn(",
@@ -173,14 +164,13 @@
 				"          Price,",
 				"          StockQuantity",
 				"     ),",
-				"     partitionBy('hash', 1)) ~> sink2",
-				"derivedColumn4 sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     format: 'parquet',",
-				"     partitionFileNames:['Sales.csv'],",
-				"     umask: 0222,",
+				"     partitionBy('hash', 1),",
 				"     preCommands: [],",
 				"     postCommands: [],",
+				"     format: 'parquet') ~> sink2",
+				"derivedColumn4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Sales.csv'],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     mapColumn(",
@@ -191,7 +181,10 @@
 				"          Quantity,",
 				"          TotalAmount",
 				"     ),",
-				"     partitionBy('hash', 1)) ~> sink3"
+				"     partitionBy('hash', 1),",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     format: 'parquet') ~> sink3"
 			]
 		}
 	}

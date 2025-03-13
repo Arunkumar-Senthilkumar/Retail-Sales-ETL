@@ -6,7 +6,7 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "ds_customers_silver",
+						"referenceName": "ds_customer_silver_csv",
 						"type": "DatasetReference"
 					},
 					"name": "source1"
@@ -16,17 +16,11 @@
 			"transformations": [],
 			"scriptLines": [
 				"source(output(",
-				"          CustomerID as integer,",
-				"          CustomerName as string,",
-				"          Email as string,",
-				"          Phone as string,",
-				"          City as string,",
-				"          Country as string",
+				"          {PAR1\u0015\u0000\u0015�\u0005\u0015�\u0005\u0015�Ȟ�\u0002\u001c\u0015�\u0001\u0015\u0000\u0015\u0006\u0015\b\u0000\u0000�\u00028\u0003\u0000\u0000\u0000�\u0001\u0001\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0001\u000f�3\u0001\u0004\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0006\u0000\u0000\u0000\u0007\u0000\u0000\u0000\b\u0000\u0000\u0000     \u0000\u0000\u0000} as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet') ~> source1"
+				"     ignoreNoFilesFound: false) ~> source1"
 			]
 		}
 	}
