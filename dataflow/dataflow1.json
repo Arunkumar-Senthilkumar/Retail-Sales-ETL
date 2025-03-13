@@ -29,21 +29,21 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "ds_silver",
+						"referenceName": "ds_silver_csv",
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_silver",
+						"referenceName": "ds_silver_csv",
 						"type": "DatasetReference"
 					},
 					"name": "sink2"
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_silver",
+						"referenceName": "ds_silver_csv",
 						"type": "DatasetReference"
 					},
 					"name": "sink3"
@@ -137,13 +137,11 @@
 				"source3 filter(!isNull(CustomerID)) ~> filter3",
 				"filter3 derive(ProductID = iif(isNull(ProductID), 0, ProductID),",
 				"          Quantity = iif(isNull(Quantity),0,Quantity),",
-				"          TotalAmount = iif(isNull(TotalAmount), toDecimal(0, 10, 2), TotalAmount)\r",
-				",",
+				"          TotalAmount = iif(isNull(TotalAmount), toDecimal(0, 10, 2), TotalAmount),",
 				"          SaleDate = iif(isNull(SaleDate),toDate(\"2000-01-01\"),SaleDate)) ~> derivedColumn4",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'parquet',",
-				"     partitionFileNames:['customers.csv'],",
+				"     partitionFileNames:['customers'],",
 				"     umask: 0222,",
 				"     preCommands: [],",
 				"     postCommands: [],",
@@ -157,11 +155,11 @@
 				"          City,",
 				"          Country",
 				"     ),",
-				"     partitionBy('hash', 1)) ~> sink1",
+				"     partitionBy('hash', 1),",
+				"     format: 'parquet') ~> sink1",
 				"derivedColumn3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'parquet',",
-				"     partitionFileNames:['Products.csv'],",
+				"     partitionFileNames:['Products'],",
 				"     umask: 0222,",
 				"     preCommands: [],",
 				"     postCommands: [],",
@@ -174,11 +172,11 @@
 				"          Price,",
 				"          StockQuantity",
 				"     ),",
-				"     partitionBy('hash', 1)) ~> sink2",
+				"     partitionBy('hash', 1),",
+				"     format: 'parquet') ~> sink2",
 				"derivedColumn4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'parquet',",
-				"     partitionFileNames:['Sales.csv'],",
+				"     partitionFileNames:['Sales'],",
 				"     umask: 0222,",
 				"     preCommands: [],",
 				"     postCommands: [],",
@@ -192,7 +190,8 @@
 				"          Quantity,",
 				"          TotalAmount",
 				"     ),",
-				"     partitionBy('hash', 1)) ~> sink3"
+				"     partitionBy('hash', 1),",
+				"     format: 'parquet') ~> sink3"
 			]
 		}
 	}
