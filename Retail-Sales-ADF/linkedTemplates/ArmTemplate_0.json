@@ -839,7 +839,7 @@
 						"          SaleDate = iif(isNull(SaleDate),toDate(\"2000-01-01\"),SaleDate)) ~> derivedColumn4",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     partitionFileNames:['customers'],",
+						"     partitionFileNames:['customers.csv'],",
 						"     umask: 0222,",
 						"     preCommands: [],",
 						"     postCommands: [],",
@@ -857,7 +857,7 @@
 						"     format: 'parquet') ~> sink1",
 						"derivedColumn3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     partitionFileNames:['Products'],",
+						"     partitionFileNames:['Products.csv'],",
 						"     umask: 0222,",
 						"     preCommands: [],",
 						"     postCommands: [],",
@@ -874,7 +874,7 @@
 						"     format: 'parquet') ~> sink2",
 						"derivedColumn4 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     partitionFileNames:['Sales'],",
+						"     partitionFileNames:['Sales.csv'],",
 						"     umask: 0222,",
 						"     preCommands: [],",
 						"     postCommands: [],",
@@ -1228,7 +1228,7 @@
 						],
 						"userProperties": [],
 						"typeProperties": {
-							"waitTimeInSeconds": 180
+							"waitTimeInSeconds": 60
 						}
 					}
 				],
