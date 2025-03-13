@@ -1,5 +1,5 @@
 {
-	"name": "ds_raw_products",
+	"name": "ds_r2s_products",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_retailsalesadlsgen2",

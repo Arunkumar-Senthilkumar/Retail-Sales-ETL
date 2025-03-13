@@ -24,11 +24,17 @@
 			"transformations": [
 				{
 					"name": "filter1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
 				"source(output(",
-				"          CustomerID as integer,",
+				"          CustomerID as integer '000',",
 				"          CustomerName as string,",
 				"          Email as string,",
 				"          Phone as string,",
@@ -38,15 +44,31 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> source1",
-				"source1 filter(!isNull(CustomerID)) ~> filter1",
-				"filter1 sink(allowSchemaDrift: true,",
+				"source1 filter(!isNull(CustomerID) && !isNull(CustomerName) && !isNull(Email) && !isNull(Phone)) ~> filter1",
+				"filter1 aggregate(groupBy(CustomerID),",
+				"     customer_count = count(CustomerID)<=1,",
+				"          CustomerName = first(CustomerName),",
+				"          Email = first(Email),",
+				"          Phone = first(Phone),",
+				"          City = first(City),",
+				"          Country = first(Country)) ~> aggregate1",
+				"aggregate1 derive(Phone = iif(Phone == 'None', \"0\", Phone)) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'parquet',",
 				"     umask: 0222,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink1"
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          CustomerName,",
+				"          Email,",
+				"          Phone,",
+				"          City,",
+				"          Country",
+				"     )) ~> sink1"
 			]
 		}
 	}
