@@ -346,7 +346,8 @@
 									"source2": {},
 									"source3": {},
 									"sink1": {},
-									"sink2": {}
+									"sink2": {},
+									"sink3": {}
 								}
 							},
 							"staging": {},
@@ -1009,6 +1010,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "sink2"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_silver",
+								"type": "DatasetReference"
+							},
+							"name": "sink3"
 						}
 					],
 					"transformations": [
@@ -1038,6 +1046,9 @@
 						},
 						{
 							"name": "filter3"
+						},
+						{
+							"name": "derivedColumn4"
 						}
 					],
 					"scriptLines": [
@@ -1056,7 +1067,7 @@
 						"          ProductID as integer,",
 						"          ProductName as string,",
 						"          Category as string,",
-						"          Price as decimal(10,0),",
+						"          Price as decimal(10,2),",
 						"          StockQuantity as string",
 						"     ),",
 						"     allowSchemaDrift: true,",
@@ -1068,7 +1079,7 @@
 						"          ProductID as integer,",
 						"          SaleDate as date,",
 						"          Quantity as integer,",
-						"          TotalAmount as decimal(18,2)",
+						"          TotalAmount as decimal(10,0)",
 						"     ),",
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
@@ -1083,21 +1094,26 @@
 						"          Country = first(Country)) ~> aggregate1",
 						"aggregate1 derive(Phone = iif(Phone == 'None', \"0\", Phone)) ~> derivedColumn1",
 						"source2 filter(notEquals(ProductID, 0)) ~> filter2",
-						"filter2 derive(DerivedCategory = iif(isNull(Category),\"Common\", Category),",
-						"          DerivedStockQuantity = iif(StockQuantity==\"None\",0, toInteger(StockQuantity))) ~> derivedColumn2",
-						"derivedColumn2 aggregate(groupBy(DerivedCategory),",
-						"     CategoryPriceAvug = toDecimal(toDouble(avg(Price)),18, 2)) ~> aggregate2",
-						"aggregate2, derivedColumn2 join(aggregate2@DerivedCategory == derivedColumn2@DerivedCategory,",
+						"filter2 derive(Category = iif(isNull(Category),\"Unknown\", Category),",
+						"          StockQuantity = iif(StockQuantity==\"None\",0, toInteger(StockQuantity))) ~> derivedColumn2",
+						"derivedColumn2 aggregate(groupBy(Category),",
+						"     CategoryPriceAvug = toDecimal(avg(Price), 10, 2)) ~> aggregate2",
+						"aggregate2, derivedColumn2 join(aggregate2@Category == derivedColumn2@Category,",
 						"     joinType:'inner',",
 						"     matchType:'exact',",
 						"     ignoreSpaces: false,",
 						"     broadcast: 'auto')~> join1",
 						"join1 derive(Price = iif(Price==0.0,CategoryPriceAvug, Price)) ~> derivedColumn3",
 						"source3 filter(!isNull(CustomerID)) ~> filter3",
+						"filter3 derive(ProductID = iif(isNull(ProductID), 0, ProductID),",
+						"          Quantity = iif(isNull(Quantity),0,Quantity),",
+						"          TotalAmount = iif(isNull(TotalAmount), toDecimal(0, 10, 2), TotalAmount)\r",
+						",",
+						"          SaleDate = iif(isNull(SaleDate),toDate(\"2000-01-01\"),SaleDate)) ~> derivedColumn4",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     format: 'parquet',",
-						"     partitionFileNames:['customers'],",
+						"     partitionFileNames:['customers.csv'],",
 						"     umask: 0222,",
 						"     preCommands: [],",
 						"     postCommands: [],",
@@ -1124,11 +1140,29 @@
 						"     mapColumn(",
 						"          ProductID,",
 						"          ProductName,",
-						"          Category = derivedColumn2@DerivedCategory,",
+						"          Category = derivedColumn2@Category,",
 						"          Price,",
-						"          StockQuantity = DerivedStockQuantity",
+						"          StockQuantity",
 						"     ),",
-						"     partitionBy('hash', 1)) ~> sink2"
+						"     partitionBy('hash', 1)) ~> sink2",
+						"derivedColumn4 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     partitionFileNames:['Sales.csv'],",
+						"     umask: 0222,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          SaleID,",
+						"          CustomerID,",
+						"          ProductID,",
+						"          SaleDate,",
+						"          Quantity,",
+						"          TotalAmount",
+						"     ),",
+						"     partitionBy('hash', 1)) ~> sink3"
 					]
 				}
 			},
