@@ -463,30 +463,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_silver')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_retailsalesadlsgen2",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileSystem": "silver"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/ds_sales')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -534,6 +510,57 @@
 						"type": "String"
 					}
 				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "silver"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "silver"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
@@ -700,21 +727,21 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "ds_silver",
+								"referenceName": "ds_silver_csv",
 								"type": "DatasetReference"
 							},
 							"name": "sink1"
 						},
 						{
 							"dataset": {
-								"referenceName": "ds_silver",
+								"referenceName": "ds_silver_csv",
 								"type": "DatasetReference"
 							},
 							"name": "sink2"
 						},
 						{
 							"dataset": {
-								"referenceName": "ds_silver",
+								"referenceName": "ds_silver_csv",
 								"type": "DatasetReference"
 							},
 							"name": "sink3"
@@ -808,13 +835,11 @@
 						"source3 filter(!isNull(CustomerID)) ~> filter3",
 						"filter3 derive(ProductID = iif(isNull(ProductID), 0, ProductID),",
 						"          Quantity = iif(isNull(Quantity),0,Quantity),",
-						"          TotalAmount = iif(isNull(TotalAmount), toDecimal(0, 10, 2), TotalAmount)\r",
-						",",
+						"          TotalAmount = iif(isNull(TotalAmount), toDecimal(0, 10, 2), TotalAmount),",
 						"          SaleDate = iif(isNull(SaleDate),toDate(\"2000-01-01\"),SaleDate)) ~> derivedColumn4",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     format: 'parquet',",
-						"     partitionFileNames:['customers.csv'],",
+						"     partitionFileNames:['customers'],",
 						"     umask: 0222,",
 						"     preCommands: [],",
 						"     postCommands: [],",
@@ -828,11 +853,11 @@
 						"          City,",
 						"          Country",
 						"     ),",
-						"     partitionBy('hash', 1)) ~> sink1",
+						"     partitionBy('hash', 1),",
+						"     format: 'parquet') ~> sink1",
 						"derivedColumn3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     format: 'parquet',",
-						"     partitionFileNames:['Products.csv'],",
+						"     partitionFileNames:['Products'],",
 						"     umask: 0222,",
 						"     preCommands: [],",
 						"     postCommands: [],",
@@ -845,11 +870,11 @@
 						"          Price,",
 						"          StockQuantity",
 						"     ),",
-						"     partitionBy('hash', 1)) ~> sink2",
+						"     partitionBy('hash', 1),",
+						"     format: 'parquet') ~> sink2",
 						"derivedColumn4 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
-						"     format: 'parquet',",
-						"     partitionFileNames:['Sales.csv'],",
+						"     partitionFileNames:['Sales'],",
 						"     umask: 0222,",
 						"     preCommands: [],",
 						"     postCommands: [],",
@@ -863,7 +888,8 @@
 						"          Quantity,",
 						"          TotalAmount",
 						"     ),",
-						"     partitionBy('hash', 1)) ~> sink3"
+						"     partitionBy('hash', 1),",
+						"     format: 'parquet') ~> sink3"
 					]
 				}
 			},
@@ -871,7 +897,7 @@
 				"[concat(variables('factoryId'), '/datasets/ds_customers')]",
 				"[concat(variables('factoryId'), '/datasets/ds_products')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sales')]",
-				"[concat(variables('factoryId'), '/datasets/ds_silver')]"
+				"[concat(variables('factoryId'), '/datasets/ds_silver_csv')]"
 			]
 		},
 		{
@@ -1145,7 +1171,14 @@
 					{
 						"name": "Data flow1",
 						"type": "ExecuteDataFlow",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Wait1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -1175,6 +1208,28 @@
 							},
 							"traceLevel": "Fine"
 						}
+					},
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [
+							{
+								"activity": "If Condition1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Copy data1_copy1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 180
+						}
 					}
 				],
 				"policy": {
@@ -1193,37 +1248,6 @@
 				"[concat(variables('factoryId'), '/datasets/ds_r2s_products')]",
 				"[concat(variables('factoryId'), '/dataflows/dataflow1')]",
 				"[concat(variables('factoryId'), '/datasets/ds_raw')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Tumbling_trigger')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "pipeline1",
-						"type": "PipelineReference"
-					},
-					"parameters": {}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 8,
-					"startTime": "2025-03-12T22:45:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 50,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/pipeline1')]"
 			]
 		}
 	]
