@@ -343,7 +343,10 @@
 								"parameters": {},
 								"datasetParameters": {
 									"source1": {},
-									"sink1": {}
+									"source2": {},
+									"source3": {},
+									"sink1": {},
+									"sink2": {}
 								}
 							},
 							"staging": {},
@@ -652,6 +655,83 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_products')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "products.csv",
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "ProductID",
+						"type": "String"
+					},
+					{
+						"name": "ProductName",
+						"type": "String"
+					},
+					{
+						"name": "Category",
+						"type": "String"
+					},
+					{
+						"name": "Price",
+						"type": "String"
+					},
+					{
+						"name": "StockQuantity",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_r2s_products')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "products.csv",
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_raw')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -707,7 +787,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_r2s_products')]",
+			"name": "[concat(parameters('factoryName'), '/ds_silver')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -716,17 +796,13 @@
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"type": "DelimitedText",
+				"type": "Parquet",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "products.csv",
-						"fileSystem": "raw"
+						"fileSystem": "silver"
 					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
+					"compressionCodec": "snappy"
 				},
 				"schema": []
 			},
@@ -903,6 +979,16 @@
 								"type": "DatasetReference"
 							},
 							"name": "source1"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_products",
+								"type": "DatasetReference"
+							},
+							"name": "source2"
+						},
+						{
+							"name": "source3"
 						}
 					],
 					"sinks": [
@@ -912,6 +998,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "sink1"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_silver",
+								"type": "DatasetReference"
+							},
+							"name": "sink2"
 						}
 					],
 					"transformations": [
@@ -923,6 +1016,21 @@
 						},
 						{
 							"name": "derivedColumn1"
+						},
+						{
+							"name": "filter2"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "aggregate2"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "derivedColumn3"
 						}
 					],
 					"scriptLines": [
@@ -937,7 +1045,19 @@
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     ignoreNoFilesFound: false) ~> source1",
-						"source1 filter(!isNull(CustomerID) && !isNull(CustomerName) && !isNull(Email) && !isNull(Phone)) ~> filter1",
+						"source(output(",
+						"          ProductID as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          Price as decimal(10,0),",
+						"          StockQuantity as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source2",
+						"source(allowSchemaDrift: true,",
+						"     validateSchema: false) ~> source3",
+						"source1 filter(!isNull(CustomerID)) ~> filter1",
 						"filter1 aggregate(groupBy(CustomerID),",
 						"     customer_count = count(CustomerID)<=1,",
 						"          CustomerName = first(CustomerName),",
@@ -946,6 +1066,17 @@
 						"          City = first(City),",
 						"          Country = first(Country)) ~> aggregate1",
 						"aggregate1 derive(Phone = iif(Phone == 'None', \"0\", Phone)) ~> derivedColumn1",
+						"source2 filter(notEquals(ProductID, 0)) ~> filter2",
+						"filter2 derive(DerivedCategory = iif(isNull(Category),\"Common\", Category),",
+						"          DerivedStockQuantity = iif(StockQuantity==\"None\",0, toInteger(StockQuantity))) ~> derivedColumn2",
+						"derivedColumn2 aggregate(groupBy(DerivedCategory),",
+						"     CategoryPriceAvug = toDecimal(toDouble(avg(Price)),18, 2)) ~> aggregate2",
+						"aggregate2, derivedColumn2 join(aggregate2@DerivedCategory == derivedColumn2@DerivedCategory,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 derive(Price = iif(Price==0.0,CategoryPriceAvug, Price)) ~> derivedColumn3",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     format: 'parquet',",
@@ -963,37 +1094,31 @@
 						"          City,",
 						"          Country",
 						"     ),",
-						"     partitionBy('hash', 1)) ~> sink1"
+						"     partitionBy('hash', 1)) ~> sink1",
+						"derivedColumn3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'parquet',",
+						"     partitionFileNames:['Products.csv'],",
+						"     umask: 0222,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          ProductID,",
+						"          ProductName,",
+						"          Category = derivedColumn2@DerivedCategory,",
+						"          Price,",
+						"          StockQuantity = DerivedStockQuantity",
+						"     ),",
+						"     partitionBy('hash', 1)) ~> sink2"
 					]
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_customers')]",
+				"[concat(variables('factoryId'), '/datasets/ds_products')]",
 				"[concat(variables('factoryId'), '/datasets/ds_silver')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_silver')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_retailsalesadlsgen2",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileSystem": "silver"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
 			]
 		}
 	]
