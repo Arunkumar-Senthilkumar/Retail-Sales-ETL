@@ -51,6 +51,12 @@
 				},
 				{
 					"name": "join3"
+				},
+				{
+					"name": "aggregate3"
+				},
+				{
+					"name": "aggregate4"
 				}
 			],
 			"scriptLines": [
@@ -98,12 +104,12 @@
 				"          Category = first(Category),",
 				"          Price = first(Price),",
 				"          StockQuantity = first(StockQuantity)) ~> aggregate1",
-				"customers, sales join(customers@CustomerID == sales@CustomerID,",
+				"aggregate4, sales join(aggregate4@CustomerID == sales@CustomerID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join2",
-				"join2 aggregate(groupBy(customers@CustomerID),",
+				"join2 aggregate(groupBy(sales@CustomerID),",
 				"     TotalAmount = sum(TotalAmount),",
 				"          CustomerName = first(CustomerName),",
 				"          Email = first(Email),",
@@ -113,11 +119,21 @@
 				"     output(rank as long),",
 				"     dense: true) ~> rank1",
 				"rank1 filter(rank<=6) ~> filter1",
-				"products, sales join(products@ProductID == ERROR_FUNCTION(''),",
+				"products, sales join(products@ProductID == sales@ProductID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join3"
+				"     broadcast: 'auto')~> join3",
+				"join3 aggregate(groupBy(products@ProductID),",
+				"     TotalQuantitySold = sum(Quantity),",
+				"          RemainingStockQuantity = sum(StockQuantity)-sum(Quantity),",
+				"          StockQuantity = first(StockQuantity),",
+				"          ProductName = first(ProductName),",
+				"          Category = first(Category),",
+				"          Price = first(Price),",
+				"          Quantity = first(Quantity)) ~> aggregate3",
+				"customers aggregate(groupBy(CustomerID),",
+				"     each(match(name!='CustomerID'), $$ = first($$))) ~> aggregate4"
 			]
 		}
 	}
