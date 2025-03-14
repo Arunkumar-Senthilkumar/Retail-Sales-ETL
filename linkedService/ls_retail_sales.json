@@ -1,0 +1,23 @@
+{
+	"name": "ls_retail_sales",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "retailsalesserver.database.windows.net",
+			"database": "retail_sales",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "arun",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_retail_sales_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "op-ss-arunkumar-psw"
+			}
+		}
+	}
+}
