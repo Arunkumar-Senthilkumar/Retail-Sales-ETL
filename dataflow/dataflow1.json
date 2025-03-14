@@ -33,6 +33,20 @@
 						"type": "DatasetReference"
 					},
 					"name": "RevenuePerProduct"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_productPerformance",
+						"type": "DatasetReference"
+					},
+					"name": "ProductPerformance"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_topcustomer",
+						"type": "DatasetReference"
+					},
+					"name": "TopCustomers"
 				}
 			],
 			"transformations": [
@@ -71,6 +85,12 @@
 				},
 				{
 					"name": "AlterRow1"
+				},
+				{
+					"name": "AlterRow2"
+				},
+				{
+					"name": "AlterRow3"
 				}
 			],
 			"scriptLines": [
@@ -139,7 +159,7 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> join3",
 				"join3 aggregate(groupBy(products@ProductID),",
-				"     TotalQuantitySold = sum(Quantity),",
+				"     TotalQuantitySold = toInteger(sum(Quantity)),",
 				"          StockQuantity = first(StockQuantity),",
 				"          ProductName = first(ProductName),",
 				"          Category = first(Category),",
@@ -147,8 +167,10 @@
 				"          Quantity = first(Quantity)) ~> aggregate3",
 				"customers aggregate(groupBy(CustomerID),",
 				"     each(match(name!='CustomerID'), $$ = first($$))) ~> aggregate4",
-				"aggregate3 derive(RemainingStockQuantity = StockQuantity-TotalQuantitySold) ~> derivedColumn1",
-				"aggregate1 alterRow(upsertIf(iif(isNull(ProductID), true(), false()))) ~> AlterRow1",
+				"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
+				"aggregate1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow1",
+				"derivedColumn1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow2",
+				"filter1 alterRow(upsertIf(iif(isNull(CustomerID),true(),false()))) ~> AlterRow3",
 				"AlterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -175,7 +197,57 @@
 				"          Price,",
 				"          TotalProductSalesAmount,",
 				"          TotalSalesCount",
-				"     )) ~> RevenuePerProduct"
+				"     )) ~> RevenuePerProduct",
+				"AlterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ProductId as integer,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          StockQuantity as integer,",
+				"          TotalQuantitySold as integer,",
+				"          RemainingStockQuantity as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['ProductId'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ProductId = ProductID,",
+				"          ProductName,",
+				"          Category,",
+				"          StockQuantity,",
+				"          TotalQuantitySold,",
+				"          RemainingStockQuantity",
+				"     )) ~> ProductPerformance",
+				"AlterRow3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CustomerID as integer,",
+				"          CustomerName as string,",
+				"          TotalAmount as decimal(10,2),",
+				"          rank as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['CustomerID'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          CustomerName,",
+				"          TotalAmount,",
+				"          rank",
+				"     )) ~> TopCustomers"
 			]
 		}
 	}

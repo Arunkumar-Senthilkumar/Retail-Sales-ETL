@@ -1,0 +1,37 @@
+{
+	"name": "ds_topcustomer",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_retail_sales",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CustomerID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "CustomerName",
+				"type": "varchar"
+			},
+			{
+				"name": "TotalAmount",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "rank",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "TopCustomers"
+		}
+	}
+}

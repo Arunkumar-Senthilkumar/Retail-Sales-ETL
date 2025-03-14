@@ -1,0 +1,45 @@
+{
+	"name": "ds_productPerformance",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_retail_sales",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ProductId",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ProductName",
+				"type": "varchar"
+			},
+			{
+				"name": "Category",
+				"type": "varchar"
+			},
+			{
+				"name": "StockQuantity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "TotalQuantitySold",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "RemainingStockQuantity",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ProductPerformance"
+		}
+	}
+}
