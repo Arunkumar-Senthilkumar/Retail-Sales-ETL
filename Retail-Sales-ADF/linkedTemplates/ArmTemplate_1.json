@@ -21,7 +21,7 @@
 				"runtimeState": "Started",
 				"pipeline": {
 					"pipelineReference": {
-						"referenceName": "pipeline1",
+						"referenceName": "sales data to raw",
 						"type": "PipelineReference"
 					},
 					"parameters": {}
