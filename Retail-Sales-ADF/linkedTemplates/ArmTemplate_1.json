@@ -400,6 +400,20 @@
 								"type": "DatasetReference"
 							},
 							"name": "RevenuePerProducttable"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_topcustomer",
+								"type": "DatasetReference"
+							},
+							"name": "TopCustomersTable"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_productPerformance",
+								"type": "DatasetReference"
+							},
+							"name": "ProductPerformanceTable"
 						}
 					],
 					"sinks": [
@@ -470,6 +484,12 @@
 						},
 						{
 							"name": "lookup1"
+						},
+						{
+							"name": "lookup2"
+						},
+						{
+							"name": "lookup3"
 						}
 					],
 					"scriptLines": [
@@ -517,6 +537,28 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> RevenuePerProducttable",
+						"source(output(",
+						"          CustomerID as integer,",
+						"          CustomerName as string,",
+						"          TotalAmount as decimal(10,2),",
+						"          rank as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> TopCustomersTable",
+						"source(output(",
+						"          ProductId as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          StockQuantity as integer,",
+						"          TotalQuantitySold as integer,",
+						"          RemainingStockQuantity as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ProductPerformanceTable",
 						"sales, products join(sales@ProductID == products@ProductID,",
 						"     joinType:'inner',",
 						"     matchType:'exact',",
@@ -560,12 +602,20 @@
 						"     each(match(name!='CustomerID'), $$ = first($$))) ~> aggregate4",
 						"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
 						"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID),true(),false()))) ~> AlterRow1",
-						"derivedColumn1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow2",
-						"filter1 alterRow(upsertIf(iif(isNull(CustomerID),true(),false()))) ~> AlterRow3",
+						"lookup3 alterRow(upsertIf(iif(isNull(ProductPerformanceTable@ProductId),true(),false()))) ~> AlterRow2",
+						"lookup2 alterRow(upsertIf(iif(isNull(TopCustomersTable@CustomerID),true(),false()))) ~> AlterRow3",
 						"aggregate1, RevenuePerProducttable lookup(aggregate1@ProductID == RevenuePerProducttable@ProductID,",
 						"     multiple: false,",
 						"     pickup: 'any',",
 						"     broadcast: 'auto')~> lookup1",
+						"filter1, TopCustomersTable lookup(aggregate2@CustomerID == TopCustomersTable@CustomerID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup2",
+						"derivedColumn1, ProductPerformanceTable lookup(aggregate3@ProductID == ProductPerformanceTable@ProductId,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup3",
 						"AlterRow1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -605,12 +655,12 @@
 						"     skipDuplicateMapOutputs: true,",
 						"     errorHandlingOption: 'stopOnFirstError',",
 						"     mapColumn(",
-						"          ProductId = ProductID,",
-						"          ProductName,",
-						"          Category,",
-						"          StockQuantity,",
-						"          TotalQuantitySold,",
-						"          RemainingStockQuantity",
+						"          ProductId = aggregate3@ProductID,",
+						"          ProductName = aggregate3@ProductName,",
+						"          Category = aggregate3@Category,",
+						"          StockQuantity = aggregate3@StockQuantity,",
+						"          TotalQuantitySold = aggregate3@TotalQuantitySold,",
+						"          RemainingStockQuantity = derivedColumn1@RemainingStockQuantity",
 						"     )) ~> ProductPerformance",
 						"AlterRow3 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
@@ -630,10 +680,10 @@
 						"     skipDuplicateMapOutputs: true,",
 						"     errorHandlingOption: 'stopOnFirstError',",
 						"     mapColumn(",
-						"          CustomerID,",
-						"          CustomerName,",
-						"          TotalAmount,",
-						"          rank",
+						"          CustomerID = aggregate2@CustomerID,",
+						"          CustomerName = aggregate2@CustomerName,",
+						"          TotalAmount = aggregate2@TotalAmount,",
+						"          rank = rank1@rank",
 						"     )) ~> TopCustomers"
 					]
 				}
@@ -929,6 +979,8 @@
 									"products": {},
 									"customers": {},
 									"RevenuePerProducttable": {},
+									"TopCustomersTable": {},
+									"ProductPerformanceTable": {},
 									"RevenuePerProduct": {},
 									"ProductPerformance": {},
 									"TopCustomers": {}
