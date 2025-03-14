@@ -185,234 +185,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_RestAPI')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_RestAPI",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "RestResource",
-				"typeProperties": {
-					"relativeUrl": "Arunkumar-Senthilkumar/Retail-Sales-ETL/refs/heads/main/sales.json"
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_RestAPI')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_RestAPI')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "RestService",
-				"typeProperties": {
-					"url": "[parameters('ls_RestAPI_properties_typeProperties_url')]",
-					"enableServerCertificateValidation": true,
-					"authenticationType": "Anonymous"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_backenddataadls')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"serviceEndpoint": "[parameters('ls_backenddataadls_properties_typeProperties_serviceEndpoint')]",
-					"tenant": "[parameters('ls_backenddataadls_properties_typeProperties_tenant')]",
-					"servicePrincipalId": "[parameters('ls_backenddataadls_properties_typeProperties_servicePrincipalId')]",
-					"servicePrincipalCredentialType": "ServicePrincipalKey",
-					"servicePrincipalCredential": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "ls_retail_sales_kv",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "retail-secret"
-					},
-					"accountKind": "StorageV2"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales_kv')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_op_sql_server')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "SqlServer",
-				"typeProperties": {
-					"server": "[parameters('ls_op_sql_server_properties_typeProperties_server')]",
-					"database": "[parameters('ls_op_sql_server_properties_typeProperties_database')]",
-					"encrypt": "mandatory",
-					"trustServerCertificate": true,
-					"authenticationType": "SQL",
-					"userName": "[parameters('ls_op_sql_server_properties_typeProperties_userName')]",
-					"password": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "ls_retail_sales_kv",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "op-ss-arunkumar-psw"
-					}
-				},
-				"connectVia": {
-					"referenceName": "IR-Retail-SQL-Server",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/IR-Retail-SQL-Server')]",
-				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales_kv')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_retail_sales_kv')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureKeyVault",
-				"typeProperties": {
-					"baseUrl": "[parameters('ls_retail_sales_kv_properties_typeProperties_baseUrl')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_retailsalesadlsgen2')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobFS",
-				"typeProperties": {
-					"url": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_url')]",
-					"tenant": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_tenant')]",
-					"servicePrincipalId": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId')]",
-					"servicePrincipalCredentialType": "ServicePrincipalKey",
-					"servicePrincipalCredential": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "ls_retail_sales_kv",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "retail-secret"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales_kv')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Tumbling_trigger')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "sales data to raw",
-						"type": "PipelineReference"
-					},
-					"parameters": {}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 8,
-					"startTime": "2025-03-12T22:45:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 50,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/sales data to raw')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/IR-Retail-SQL-Server')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_raw_sales')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_retailsalesadlsgen2",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "sales.csv",
-						"fileSystem": "raw"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "CustomerID",
-						"type": "String"
-					},
-					{
-						"name": "CustomerName",
-						"type": "String"
-					},
-					{
-						"name": "Email",
-						"type": "String"
-					},
-					{
-						"name": "Phone",
-						"type": "String"
-					},
-					{
-						"name": "City",
-						"type": "String"
-					},
-					{
-						"name": "Country",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/sales retail ETL')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -441,6 +213,7 @@
 							],
 							"storeSettings": {
 								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
 								"enablePartitionDiscovery": false
 							},
 							"formatSettings": {
@@ -621,6 +394,49 @@
 								"parameters": {}
 							}
 						]
+					},
+					{
+						"name": "dataflow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ForEach1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Copy data2",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sales": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
 					}
 				],
 				"policy": {
@@ -637,7 +453,28 @@
 				"[concat(variables('factoryId'), '/datasets/ds_customers_backend')]",
 				"[concat(variables('factoryId'), '/datasets/ds_op_products')]",
 				"[concat(variables('factoryId'), '/datasets/ds_raw')]",
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]",
 				"[concat(variables('factoryId'), '/datasets/ds_raw_customers')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_RestAPI')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_RestAPI",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": "Arunkumar-Senthilkumar/Retail-Sales-ETL/refs/heads/main/sales.json"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_RestAPI')]"
 			]
 		},
 		{
@@ -690,62 +527,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_backenddataadls')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_raw_customers')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_retailsalesadlsgen2",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@concat('customers_', formatDateTime(utcNow(), 'yyyy_MM_dd'), '.csv')\n",
-							"type": "Expression"
-						},
-						"fileSystem": "raw"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "SaleID",
-						"type": "String"
-					},
-					{
-						"name": "CustomerID",
-						"type": "String"
-					},
-					{
-						"name": "ProductID",
-						"type": "String"
-					},
-					{
-						"name": "SaleDate",
-						"type": "String"
-					},
-					{
-						"name": "Quantity",
-						"type": "String"
-					},
-					{
-						"name": "TotalAmount",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
 			]
 		},
 		{
@@ -848,6 +629,298 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_raw_customers')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat('customers_', formatDateTime(utcNow(), 'yyyy_MM_dd'), '.csv')\n",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "SaleID",
+						"type": "String"
+					},
+					{
+						"name": "CustomerID",
+						"type": "String"
+					},
+					{
+						"name": "ProductID",
+						"type": "String"
+					},
+					{
+						"name": "SaleDate",
+						"type": "String"
+					},
+					{
+						"name": "Quantity",
+						"type": "String"
+					},
+					{
+						"name": "TotalAmount",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_raw_sales')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "sales.csv",
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "CustomerID",
+						"type": "String"
+					},
+					{
+						"name": "CustomerName",
+						"type": "String"
+					},
+					{
+						"name": "Email",
+						"type": "String"
+					},
+					{
+						"name": "Phone",
+						"type": "String"
+					},
+					{
+						"name": "City",
+						"type": "String"
+					},
+					{
+						"name": "Country",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sales_silver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sales",
+						"fileSystem": "silver"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_RestAPI')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('ls_RestAPI_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_backenddataadls')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"serviceEndpoint": "[parameters('ls_backenddataadls_properties_typeProperties_serviceEndpoint')]",
+					"tenant": "[parameters('ls_backenddataadls_properties_typeProperties_tenant')]",
+					"servicePrincipalId": "[parameters('ls_backenddataadls_properties_typeProperties_servicePrincipalId')]",
+					"servicePrincipalCredentialType": "ServicePrincipalKey",
+					"servicePrincipalCredential": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_retail_sales_kv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "retail-secret"
+					},
+					"accountKind": "StorageV2"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales_kv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_op_sql_server')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('ls_op_sql_server_properties_typeProperties_server')]",
+					"database": "[parameters('ls_op_sql_server_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_op_sql_server_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_retail_sales_kv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "op-ss-arunkumar-psw"
+					}
+				},
+				"connectVia": {
+					"referenceName": "IR-Retail-SQL-Server",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/IR-Retail-SQL-Server')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales_kv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_retail_sales_kv')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('ls_retail_sales_kv_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_retailsalesadlsgen2')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_url')]",
+					"tenant": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_tenant')]",
+					"servicePrincipalId": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId')]",
+					"servicePrincipalCredentialType": "ServicePrincipalKey",
+					"servicePrincipalCredential": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_retail_sales_kv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "retail-secret"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales_kv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Tumbling_trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "sales data to raw",
+						"type": "PipelineReference"
+					},
+					"parameters": {}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 8,
+					"startTime": "2025-03-12T22:45:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/sales data to raw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IR-Retail-SQL-Server')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -894,8 +967,7 @@
 						"     ignoreNoFilesFound: false) ~> sales",
 						"sales filter(!isNull(SaleID) && !isNull(CustomerID)) ~> filter1",
 						"filter1 derive(ProductID = iif(isNull(ProductID), 0, ProductID),",
-						"          SaleDate = iif(isNull(SaleDate), toDate('2025-03-14', 'yyyy-MM-dd'), SaleDate)\r",
-						",",
+						"          SaleDate = iif(isNull(SaleDate), toDate('2025-03-14', 'yyyy-MM-dd'), SaleDate),",
 						"          Quantity = iif(isNull(Quantity),0,Quantity),",
 						"          TotalAmount = iif(isNull(TotalAmount),toDecimal(0,10,2),TotalAmount)) ~> derivedColumn1",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
@@ -919,34 +991,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_raw_sales')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sales_silver')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sales_silver')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_retailsalesadlsgen2",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"folderPath": "sales",
-						"fileSystem": "silver"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
 			]
 		}
 	]
