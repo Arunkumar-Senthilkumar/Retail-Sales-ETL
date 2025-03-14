@@ -1,17 +1,16 @@
 {
-	"name": "ds_raw_sales",
+	"name": "ds_customers_backend",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "ls_retailsalesadlsgen2",
+			"referenceName": "ls_backenddataadls",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "AzureBlobFSLocation",
-				"fileName": "sales.csv",
-				"fileSystem": "raw"
+				"type": "AzureBlobStorageLocation",
+				"container": "data"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",

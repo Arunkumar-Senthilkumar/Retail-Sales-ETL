@@ -1,5 +1,5 @@
 {
-	"name": "ds_raw_sales",
+	"name": "ds_raw_customers",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_retailsalesadlsgen2",
@@ -10,7 +10,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "sales.csv",
+				"fileName": {
+					"value": "@concat('customers_', formatDateTime(utcNow(), 'yyyy_MM_dd'), '.csv')\n",
+					"type": "Expression"
+				},
 				"fileSystem": "raw"
 			},
 			"columnDelimiter": ",",
@@ -20,27 +23,27 @@
 		},
 		"schema": [
 			{
+				"name": "SaleID",
+				"type": "String"
+			},
+			{
 				"name": "CustomerID",
 				"type": "String"
 			},
 			{
-				"name": "CustomerName",
+				"name": "ProductID",
 				"type": "String"
 			},
 			{
-				"name": "Email",
+				"name": "SaleDate",
 				"type": "String"
 			},
 			{
-				"name": "Phone",
+				"name": "Quantity",
 				"type": "String"
 			},
 			{
-				"name": "City",
-				"type": "String"
-			},
-			{
-				"name": "Country",
+				"name": "TotalAmount",
 				"type": "String"
 			}
 		]

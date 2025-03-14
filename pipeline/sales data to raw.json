@@ -106,7 +106,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "ds_raw",
+						"referenceName": "ds_raw_sales",
 						"type": "DatasetReference"
 					}
 				]
