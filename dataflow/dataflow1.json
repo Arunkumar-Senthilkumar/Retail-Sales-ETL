@@ -26,6 +26,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_products_silver",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
 				}
 			],
 			"transformations": [
@@ -105,7 +112,21 @@
 				"          SaleDate,",
 				"          Quantity,",
 				"          TotalAmount",
-				"     )) ~> sink1"
+				"     )) ~> sink1",
+				"derivedColumn3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0222,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          ProductID,",
+				"          ProductName,",
+				"          Category = derivedColumn2@Category,",
+				"          Price,",
+				"          StockQuantity",
+				"     )) ~> sink2"
 			]
 		}
 	}
