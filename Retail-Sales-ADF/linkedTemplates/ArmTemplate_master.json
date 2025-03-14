@@ -35,6 +35,18 @@
 			"type": "string",
 			"defaultValue": "arun"
 		},
+		"ls_retail_sales_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "retailsalesserver.database.windows.net"
+		},
+		"ls_retail_sales_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "retail_sales"
+		},
+		"ls_retail_sales_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "arun"
+		},
 		"ls_retail_sales_kv_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://retail-sales-kv.vault.azure.net/"
@@ -50,18 +62,6 @@
 		"ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId": {
 			"type": "string",
 			"defaultValue": "ab3ae891-c481-4711-b60f-e10e84c3da24"
-		},
-		"ls_retail_sales_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "retailsalesserver.database.windows.net"
-		},
-		"ls_retail_sales_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "retail_sales"
-		},
-		"ls_retail_sales_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "arun"
 		},
 		"containerUri": {
 			"type": "string",
@@ -114,15 +114,6 @@
 					"ls_op_sql_server_properties_typeProperties_userName": {
 						"value": "[parameters('ls_op_sql_server_properties_typeProperties_userName')]"
 					},
-					"ls_retailsalesadlsgen2_properties_typeProperties_url": {
-						"value": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_url')]"
-					},
-					"ls_retailsalesadlsgen2_properties_typeProperties_tenant": {
-						"value": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_tenant')]"
-					},
-					"ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId": {
-						"value": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId')]"
-					},
 					"ls_retail_sales_properties_typeProperties_server": {
 						"value": "[parameters('ls_retail_sales_properties_typeProperties_server')]"
 					},
@@ -131,6 +122,15 @@
 					},
 					"ls_retail_sales_properties_typeProperties_userName": {
 						"value": "[parameters('ls_retail_sales_properties_typeProperties_userName')]"
+					},
+					"ls_retailsalesadlsgen2_properties_typeProperties_url": {
+						"value": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_url')]"
+					},
+					"ls_retailsalesadlsgen2_properties_typeProperties_tenant": {
+						"value": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_tenant')]"
+					},
+					"ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId')]"
 					}
 				}
 			},

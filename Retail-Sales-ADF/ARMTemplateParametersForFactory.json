@@ -26,6 +26,15 @@
 		"ls_op_sql_server_properties_typeProperties_userName": {
 			"value": "arun"
 		},
+		"ls_retail_sales_properties_typeProperties_server": {
+			"value": "retailsalesserver.database.windows.net"
+		},
+		"ls_retail_sales_properties_typeProperties_database": {
+			"value": "retail_sales"
+		},
+		"ls_retail_sales_properties_typeProperties_userName": {
+			"value": "arun"
+		},
 		"ls_retail_sales_kv_properties_typeProperties_baseUrl": {
 			"value": "https://retail-sales-kv.vault.azure.net/"
 		},
@@ -37,15 +46,6 @@
 		},
 		"ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId": {
 			"value": "ab3ae891-c481-4711-b60f-e10e84c3da24"
-		},
-		"ls_retail_sales_properties_typeProperties_server": {
-			"value": "retailsalesserver.database.windows.net"
-		},
-		"ls_retail_sales_properties_typeProperties_database": {
-			"value": "retail_sales"
-		},
-		"ls_retail_sales_properties_typeProperties_userName": {
-			"value": "arun"
 		}
 	}
 }
