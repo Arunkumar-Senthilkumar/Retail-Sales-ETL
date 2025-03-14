@@ -126,7 +126,6 @@
 				"     broadcast: 'auto')~> join3",
 				"join3 aggregate(groupBy(products@ProductID),",
 				"     TotalQuantitySold = sum(Quantity),",
-				"          RemainingStockQuantity = sum(StockQuantity)-sum(Quantity),",
 				"          StockQuantity = first(StockQuantity),",
 				"          ProductName = first(ProductName),",
 				"          Category = first(Category),",
