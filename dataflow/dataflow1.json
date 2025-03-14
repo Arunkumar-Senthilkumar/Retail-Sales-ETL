@@ -1,0 +1,60 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sales_silver",
+						"type": "DatasetReference"
+					},
+					"name": "sales"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_products_silver",
+						"type": "DatasetReference"
+					},
+					"name": "products"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_customers_silver_2",
+						"type": "DatasetReference"
+					},
+					"name": "customers"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          SaleID as integer,",
+				"          CustomerID as integer,",
+				"          ProductID as integer,",
+				"          SaleDate as date,",
+				"          Quantity as integer,",
+				"          TotalAmount as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sales",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> products",
+				"source(output(",
+				"          CustomerID as short,",
+				"          CustomerName as string,",
+				"          Email as string,",
+				"          Phone as string,",
+				"          City as string,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> customers"
+			]
+		}
+	}
+}

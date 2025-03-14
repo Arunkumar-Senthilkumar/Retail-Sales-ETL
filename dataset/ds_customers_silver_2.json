@@ -1,0 +1,27 @@
+{
+	"name": "ds_customers_silver_2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_retailsalesadlsgen2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('customers_',formatDateTime(utcNow(),'yyyy_MM_dd'),'.csv')",
+					"type": "Expression"
+				},
+				"folderPath": "customers",
+				"fileSystem": "silver"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
