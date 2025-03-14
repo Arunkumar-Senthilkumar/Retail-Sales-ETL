@@ -75,7 +75,7 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          CustomerID as integer,",
+				"          CustomerID as double,",
 				"          CustomerName as string,",
 				"          Email as string,",
 				"          Phone as string,",
@@ -113,7 +113,7 @@
 				"          Email = first(Email),",
 				"          Phone = first(Phone),",
 				"          City = first(City),",
-				"          Country = first(Country)) ~> aggregate1",
+				"          Country = first({{Country})) ~> aggregate1",
 				"aggregate1 derive(Phone = iif(Phone == 'None', \"0\", Phone)) ~> derivedColumn1",
 				"source2 filter(notEquals(ProductID, 0)) ~> filter2",
 				"filter2 derive(Category = iif(isNull(Category),\"Unknown\", Category),",
