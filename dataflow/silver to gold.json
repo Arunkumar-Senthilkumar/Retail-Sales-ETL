@@ -38,6 +38,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "TopCustomersTable"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_productPerformance",
+						"type": "DatasetReference"
+					},
+					"name": "ProductPerformanceTable"
 				}
 			],
 			"sinks": [
@@ -111,6 +118,9 @@
 				},
 				{
 					"name": "lookup2"
+				},
+				{
+					"name": "lookup3"
 				}
 			],
 			"scriptLines": [
@@ -168,6 +178,18 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> TopCustomersTable",
+				"source(output(",
+				"          ProductId as integer,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          StockQuantity as integer,",
+				"          TotalQuantitySold as integer,",
+				"          RemainingStockQuantity as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ProductPerformanceTable",
 				"sales, products join(sales@ProductID == products@ProductID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
@@ -211,7 +233,7 @@
 				"     each(match(name!='CustomerID'), $$ = first($$))) ~> aggregate4",
 				"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
 				"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID),true(),false()))) ~> AlterRow1",
-				"derivedColumn1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow2",
+				"lookup3 alterRow(upsertIf(iif(isNull(ProductPerformanceTable@ProductId),true(),false()))) ~> AlterRow2",
 				"lookup2 alterRow(upsertIf(iif(isNull(TopCustomersTable@CustomerID),true(),false()))) ~> AlterRow3",
 				"aggregate1, RevenuePerProducttable lookup(aggregate1@ProductID == RevenuePerProducttable@ProductID,",
 				"     multiple: false,",
@@ -221,6 +243,10 @@
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup2",
+				"derivedColumn1, ProductPerformanceTable lookup(aggregate3@ProductID == ProductPerformanceTable@ProductId,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup3",
 				"AlterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -279,16 +305,11 @@
 				"     insertable:false,",
 				"     updateable:false,",
 				"     upsertable:true,",
+				"     keys:['CustomerID'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          CustomerID,",
-				"          CustomerName,",
-				"          TotalAmount,",
-				"          rank",
-				"     )) ~> TopCustomers"
+				"     errorHandlingOption: 'stopOnFirstError') ~> TopCustomers"
 			]
 		}
 	}
