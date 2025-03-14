@@ -482,6 +482,7 @@
 									"sales": {},
 									"products": {},
 									"customers": {},
+									"RevenuePerProducttable": {},
 									"RevenuePerProduct": {},
 									"ProductPerformance": {},
 									"TopCustomers": {}
@@ -533,6 +534,58 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_RestAPI')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_RevenuePerProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retail_sales",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ProductID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductName",
+						"type": "varchar"
+					},
+					{
+						"name": "Category",
+						"type": "varchar"
+					},
+					{
+						"name": "Price",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "TotalProductSalesAmount",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "TotalSalesCount",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "RevenuePerProduct"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales')]"
 			]
 		},
 		{
@@ -1454,6 +1507,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "customers"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_RevenuePerProduct",
+								"type": "DatasetReference"
+							},
+							"name": "RevenuePerProducttable"
 						}
 					],
 					"sinks": [
@@ -1521,6 +1581,9 @@
 						},
 						{
 							"name": "AlterRow3"
+						},
+						{
+							"name": "lookup1"
 						}
 					],
 					"scriptLines": [
@@ -1556,6 +1619,18 @@
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     ignoreNoFilesFound: false) ~> customers",
+						"source(output(",
+						"          ProductID as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          Price as decimal(10,2),",
+						"          TotalProductSalesAmount as decimal(10,2),",
+						"          TotalSalesCount as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> RevenuePerProducttable",
 						"sales, products join(sales@ProductID == products@ProductID,",
 						"     joinType:'inner',",
 						"     matchType:'exact',",
@@ -1598,9 +1673,13 @@
 						"customers aggregate(groupBy(CustomerID),",
 						"     each(match(name!='CustomerID'), $$ = first($$))) ~> aggregate4",
 						"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
-						"aggregate1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow1",
+						"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID),true(),false()))) ~> AlterRow1",
 						"derivedColumn1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow2",
 						"filter1 alterRow(upsertIf(iif(isNull(CustomerID),true(),false()))) ~> AlterRow3",
+						"aggregate1, RevenuePerProducttable lookup(aggregate1@ProductID == RevenuePerProducttable@ProductID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup1",
 						"AlterRow1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -1619,15 +1698,7 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          ProductID,",
-						"          TotalProductSalesAmount,",
-						"          TotalSalesCount,",
-						"          ProductName,",
-						"          Category,",
-						"          Price",
-						"     )) ~> RevenuePerProduct",
+						"     errorHandlingOption: 'stopOnFirstError') ~> RevenuePerProduct",
 						"AlterRow2 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -1688,58 +1759,6 @@
 				"[concat(variables('factoryId'), '/datasets/ds_RevenuePerProduct')]",
 				"[concat(variables('factoryId'), '/datasets/ds_productPerformance')]",
 				"[concat(variables('factoryId'), '/datasets/ds_topcustomer')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_RevenuePerProduct')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_retail_sales",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "ProductID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "ProductName",
-						"type": "varchar"
-					},
-					{
-						"name": "Category",
-						"type": "varchar"
-					},
-					{
-						"name": "Price",
-						"type": "decimal",
-						"precision": 10,
-						"scale": 2
-					},
-					{
-						"name": "TotalProductSalesAmount",
-						"type": "decimal",
-						"precision": 10,
-						"scale": 2
-					},
-					{
-						"name": "TotalSalesCount",
-						"type": "int",
-						"precision": 10
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "RevenuePerProduct"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales')]"
 			]
 		}
 	]
