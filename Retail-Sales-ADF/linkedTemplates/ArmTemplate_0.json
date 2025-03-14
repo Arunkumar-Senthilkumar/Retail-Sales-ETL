@@ -566,6 +566,34 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_customers_silver')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retailsalesadlsgen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "customers",
+						"fileSystem": "silver"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retailsalesadlsgen2')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/sales data to raw')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -714,6 +742,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "products"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_raw_customers",
+								"type": "DatasetReference"
+							},
+							"name": "Customers"
 						}
 					],
 					"sinks": [
@@ -730,6 +765,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "sink2"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_customers_silver",
+								"type": "DatasetReference"
+							},
+							"name": "sink3"
 						}
 					],
 					"transformations": [
@@ -753,6 +795,12 @@
 						},
 						{
 							"name": "derivedColumn3"
+						},
+						{
+							"name": "filter3"
+						},
+						{
+							"name": "derivedColumn4"
 						}
 					],
 					"scriptLines": [
@@ -777,6 +825,17 @@
 						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     ignoreNoFilesFound: false) ~> products",
+						"source(output(",
+						"          CustomerID as integer,",
+						"          CustomerName as string,",
+						"          Email as string,",
+						"          Phone as string,",
+						"          City as string,",
+						"          Country as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> Customers",
 						"sales filter(!isNull(SaleID) && !isNull(CustomerID)) ~> filter1",
 						"filter1 derive(ProductID = iif(isNull(ProductID), 0, ProductID),",
 						"          SaleDate = iif(isNull(SaleDate), toDate('2025-03-14', 'yyyy-MM-dd'), SaleDate),",
@@ -795,6 +854,8 @@
 						"     broadcast: 'auto')~> join1",
 						"join1 derive(Price = iif(Price==toDecimal(0, 10,2),AvgCategoryPrice,Price),",
 						"          StockQuantity = iif(StockQuantity==toString(0),toString(AvgStockQuantity),StockQuantity)) ~> derivedColumn3",
+						"Customers filter(!isNull(CustomerID)) ~> filter3",
+						"filter3 derive(CustomerName = iif(isNull(CustomerName),\"Unknown\",CustomerName)) ~> derivedColumn4",
 						"derivedColumn1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     umask: 0222,",
@@ -823,15 +884,26 @@
 						"          Category = derivedColumn2@Category,",
 						"          Price,",
 						"          StockQuantity",
-						"     )) ~> sink2"
+						"     )) ~> sink2",
+						"derivedColumn4 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:[(concat('customers_', toString(toDate(currentTimestamp()), 'yyyy_MM_dd'), '.csv'))],",
+						"     umask: 0222,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sink3"
 					]
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_raw_sales')]",
 				"[concat(variables('factoryId'), '/datasets/ds_raw_products')]",
+				"[concat(variables('factoryId'), '/datasets/ds_raw_customers')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sales_silver')]",
-				"[concat(variables('factoryId'), '/datasets/ds_products_silver')]"
+				"[concat(variables('factoryId'), '/datasets/ds_products_silver')]",
+				"[concat(variables('factoryId'), '/datasets/ds_customers_silver')]"
 			]
 		},
 		{
@@ -1078,8 +1150,10 @@
 								"datasetParameters": {
 									"sales": {},
 									"products": {},
+									"Customers": {},
 									"sink1": {},
-									"sink2": {}
+									"sink2": {},
+									"sink3": {}
 								}
 							},
 							"staging": {},
