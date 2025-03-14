@@ -37,7 +37,7 @@
 						"referenceName": "ds_topcustomer",
 						"type": "DatasetReference"
 					},
-					"name": "source1"
+					"name": "TopCustomersTable"
 				}
 			],
 			"sinks": [
@@ -108,6 +108,9 @@
 				},
 				{
 					"name": "lookup1"
+				},
+				{
+					"name": "lookup2"
 				}
 			],
 			"scriptLines": [
@@ -164,7 +167,7 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> source1",
+				"     format: 'table') ~> TopCustomersTable",
 				"sales, products join(sales@ProductID == products@ProductID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
@@ -209,11 +212,15 @@
 				"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
 				"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID),true(),false()))) ~> AlterRow1",
 				"derivedColumn1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow2",
-				"filter1 alterRow(upsertIf(iif(isNull(CustomerID),true(),false()))) ~> AlterRow3",
+				"lookup2 alterRow(upsertIf(iif(isNull(TopCustomersTable@CustomerID),true(),false()))) ~> AlterRow3",
 				"aggregate1, RevenuePerProducttable lookup(aggregate1@ProductID == RevenuePerProducttable@ProductID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
 				"     broadcast: 'auto')~> lookup1",
+				"filter1, TopCustomersTable lookup(aggregate2@CustomerID == TopCustomersTable@CustomerID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup2",
 				"AlterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -272,7 +279,6 @@
 				"     insertable:false,",
 				"     updateable:false,",
 				"     upsertable:true,",
-				"     keys:['CustomerID'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
