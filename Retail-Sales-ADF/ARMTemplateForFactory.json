@@ -50,6 +50,18 @@
 		"ls_retailsalesadlsgen2_properties_typeProperties_servicePrincipalId": {
 			"type": "string",
 			"defaultValue": "ab3ae891-c481-4711-b60f-e10e84c3da24"
+		},
+		"ls_retail_sales_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "retailsalesserver.database.windows.net"
+		},
+		"ls_retail_sales_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "retail_sales"
+		},
+		"ls_retail_sales_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "arun"
 		}
 	},
 	"variables": {
@@ -422,7 +434,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "dataflow1",
+								"referenceName": "raw to silver",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
@@ -432,6 +444,47 @@
 									"sink1": {},
 									"sink2": {},
 									"sink3": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "dataflow11",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "dataflow1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sales": {},
+									"products": {},
+									"customers": {},
+									"RevenuePerProduct": {},
+									"ProductPerformance": {},
+									"TopCustomers": {}
 								}
 							},
 							"staging": {},
@@ -457,6 +510,7 @@
 				"[concat(variables('factoryId'), '/datasets/ds_customers_backend')]",
 				"[concat(variables('factoryId'), '/datasets/ds_op_products')]",
 				"[concat(variables('factoryId'), '/datasets/ds_raw')]",
+				"[concat(variables('factoryId'), '/dataflows/raw to silver')]",
 				"[concat(variables('factoryId'), '/dataflows/dataflow1')]",
 				"[concat(variables('factoryId'), '/datasets/ds_raw_customers')]"
 			]
@@ -562,7 +616,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_customers_silver2')]",
+			"name": "[concat(parameters('factoryName'), '/ds_customers_silver_2')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1067,6 +1121,270 @@
 					"sources": [
 						{
 							"dataset": {
+								"referenceName": "ds_sales_silver",
+								"type": "DatasetReference"
+							},
+							"name": "sales"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_products_silver",
+								"type": "DatasetReference"
+							},
+							"name": "products"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_customers_silver_2",
+								"type": "DatasetReference"
+							},
+							"name": "customers"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_RevenuePerProduct",
+								"type": "DatasetReference"
+							},
+							"name": "RevenuePerProduct"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_productPerformance",
+								"type": "DatasetReference"
+							},
+							"name": "ProductPerformance"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_topcustomer",
+								"type": "DatasetReference"
+							},
+							"name": "TopCustomers"
+						}
+					],
+					"transformations": [
+						{
+							"name": "join1"
+						},
+						{
+							"name": "aggregate1"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "aggregate2"
+						},
+						{
+							"name": "sort1"
+						},
+						{
+							"name": "rank1"
+						},
+						{
+							"name": "filter1"
+						},
+						{
+							"name": "join3"
+						},
+						{
+							"name": "aggregate3"
+						},
+						{
+							"name": "aggregate4"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "AlterRow2"
+						},
+						{
+							"name": "AlterRow3"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SaleID as integer,",
+						"          CustomerID as integer,",
+						"          ProductID as integer,",
+						"          SaleDate as date,",
+						"          Quantity as integer,",
+						"          TotalAmount as decimal(10,2)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> sales",
+						"source(output(",
+						"          ProductID as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          Price as decimal(10,2),",
+						"          StockQuantity as short",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> products",
+						"source(output(",
+						"          CustomerID as integer,",
+						"          CustomerName as string,",
+						"          Email as string,",
+						"          Phone as string,",
+						"          City as string,",
+						"          Country as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> customers",
+						"sales, products join(sales@ProductID == products@ProductID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 aggregate(groupBy(products@ProductID),",
+						"     TotalProductSalesAmount = sum(TotalAmount),",
+						"          TotalSalesCount = toInteger(count(SaleID)),",
+						"          ProductName = first(ProductName),",
+						"          Category = first(Category),",
+						"          Price = first(Price),",
+						"          StockQuantity = first(StockQuantity)) ~> aggregate1",
+						"aggregate4, sales join(aggregate4@CustomerID == sales@CustomerID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2 aggregate(groupBy(sales@CustomerID),",
+						"     TotalAmount = sum(TotalAmount),",
+						"          CustomerName = first(CustomerName),",
+						"          Email = first(Email),",
+						"          Phone = first(Phone)) ~> aggregate2",
+						"aggregate2 sort(desc(TotalAmount, false)) ~> sort1",
+						"sort1 rank(desc(TotalAmount, true),",
+						"     output(rank as long),",
+						"     dense: true) ~> rank1",
+						"rank1 filter(rank<=6) ~> filter1",
+						"products, sales join(products@ProductID == sales@ProductID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join3",
+						"join3 aggregate(groupBy(products@ProductID),",
+						"     TotalQuantitySold = toInteger(sum(Quantity)),",
+						"          StockQuantity = first(StockQuantity),",
+						"          ProductName = first(ProductName),",
+						"          Category = first(Category),",
+						"          Price = first(Price),",
+						"          Quantity = first(Quantity)) ~> aggregate3",
+						"customers aggregate(groupBy(CustomerID),",
+						"     each(match(name!='CustomerID'), $$ = first($$))) ~> aggregate4",
+						"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
+						"aggregate1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow1",
+						"derivedColumn1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow2",
+						"filter1 alterRow(upsertIf(iif(isNull(CustomerID),true(),false()))) ~> AlterRow3",
+						"AlterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          ProductId as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          Price as decimal(10,2),",
+						"          TotalProductSalesAmount as decimal(10,2),",
+						"          TotalSalesCount as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['ProductId'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          ProductId = ProductID,",
+						"          ProductName,",
+						"          Category,",
+						"          Price,",
+						"          TotalProductSalesAmount,",
+						"          TotalSalesCount",
+						"     )) ~> RevenuePerProduct",
+						"AlterRow2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          ProductId as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          StockQuantity as integer,",
+						"          TotalQuantitySold as integer,",
+						"          RemainingStockQuantity as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['ProductId'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          ProductId = ProductID,",
+						"          ProductName,",
+						"          Category,",
+						"          StockQuantity,",
+						"          TotalQuantitySold,",
+						"          RemainingStockQuantity",
+						"     )) ~> ProductPerformance",
+						"AlterRow3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          CustomerID as integer,",
+						"          CustomerName as string,",
+						"          TotalAmount as decimal(10,2),",
+						"          rank as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['CustomerID'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          CustomerID,",
+						"          CustomerName,",
+						"          TotalAmount,",
+						"          rank",
+						"     )) ~> TopCustomers"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sales_silver')]",
+				"[concat(variables('factoryId'), '/datasets/ds_products_silver')]",
+				"[concat(variables('factoryId'), '/datasets/ds_customers_silver_2')]",
+				"[concat(variables('factoryId'), '/datasets/ds_RevenuePerProduct')]",
+				"[concat(variables('factoryId'), '/datasets/ds_productPerformance')]",
+				"[concat(variables('factoryId'), '/datasets/ds_topcustomer')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/raw to silver')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
 								"referenceName": "ds_raw_sales",
 								"type": "DatasetReference"
 							},
@@ -1250,6 +1568,178 @@
 				"[concat(variables('factoryId'), '/datasets/ds_sales_silver')]",
 				"[concat(variables('factoryId'), '/datasets/ds_products_silver')]",
 				"[concat(variables('factoryId'), '/datasets/ds_customers_silver')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_retail_sales')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_retail_sales_properties_typeProperties_server')]",
+					"database": "[parameters('ls_retail_sales_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_retail_sales_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_retail_sales_kv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "op-ss-arunkumar-psw"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales_kv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_RevenuePerProduct')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retail_sales",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ProductId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductName",
+						"type": "varchar"
+					},
+					{
+						"name": "Category",
+						"type": "varchar"
+					},
+					{
+						"name": "Price",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "TotalProductSalesAmount",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "TotalSalesCount",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "RevenuePerProduct"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_topcustomer')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retail_sales",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "CustomerID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerName",
+						"type": "varchar"
+					},
+					{
+						"name": "TotalAmount",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "rank",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "TopCustomers"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_productPerformance')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_retail_sales",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ProductId",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductName",
+						"type": "varchar"
+					},
+					{
+						"name": "Category",
+						"type": "varchar"
+					},
+					{
+						"name": "StockQuantity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TotalQuantitySold",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RemainingStockQuantity",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ProductPerformance"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_retail_sales')]"
 			]
 		}
 	]
