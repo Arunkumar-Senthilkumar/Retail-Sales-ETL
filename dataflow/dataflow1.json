@@ -35,9 +35,17 @@
 					"name": "sink1"
 				},
 				{
+					"dataset": {
+						"referenceName": "ds_silver_products",
+						"type": "DatasetReference"
+					},
 					"name": "sink2"
 				},
 				{
+					"dataset": {
+						"referenceName": "ds_silver_sales",
+						"type": "DatasetReference"
+					},
 					"name": "sink3"
 				}
 			],
@@ -154,7 +162,13 @@
 				"     format: 'parquet') ~> sink1",
 				"derivedColumn3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          {PAR1\u0015\u0000\u0015�\u0005\u0015�\u0005\u0015�Ȟ�\u0002\u001c\u0015�\u0001\u0015\u0000\u0015\u0006\u0015\b\u0000\u0000�\u00028\u0003\u0000\u0000\u0000�\u0001\u0001\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0001\u000f�3\u0001\u0004\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0006\u0000\u0000\u0000\u0007\u0000\u0000\u0000\b\u0000\u0000\u0000     \u0000\u0000\u0000} as string",
+				"     ),",
 				"     partitionFileNames:['Products.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     mapColumn(",
@@ -165,12 +179,16 @@
 				"          StockQuantity",
 				"     ),",
 				"     partitionBy('hash', 1),",
-				"     preCommands: [],",
-				"     postCommands: [],",
 				"     format: 'parquet') ~> sink2",
 				"derivedColumn4 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          {PAR1\u0015\u0000\u0015�\u0005\u0015�\u0005\u0015�Ȟ�\u0002\u001c\u0015�\u0001\u0015\u0000\u0015\u0006\u0015\b\u0000\u0000�\u00028\u0003\u0000\u0000\u0000�\u0001\u0001\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0001\u000f�3\u0001\u0004\u0000\u0000\u0000\u0005\u0000\u0000\u0000\u0006\u0000\u0000\u0000\u0007\u0000\u0000\u0000\b\u0000\u0000\u0000     \u0000\u0000\u0000} as string",
+				"     ),",
 				"     partitionFileNames:['Sales.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     mapColumn(",
@@ -182,8 +200,6 @@
 				"          TotalAmount",
 				"     ),",
 				"     partitionBy('hash', 1),",
-				"     preCommands: [],",
-				"     postCommands: [],",
 				"     format: 'parquet') ~> sink3"
 			]
 		}
