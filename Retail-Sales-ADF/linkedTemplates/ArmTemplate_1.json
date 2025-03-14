@@ -13,7 +13,7 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_topcustomer')]",
+			"name": "[concat(parameters('factoryName'), '/ds_RevenuePerProduct')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -25,29 +25,39 @@
 				"type": "AzureSqlTable",
 				"schema": [
 					{
-						"name": "CustomerID",
+						"name": "ProductID",
 						"type": "int",
 						"precision": 10
 					},
 					{
-						"name": "CustomerName",
+						"name": "ProductName",
 						"type": "varchar"
 					},
 					{
-						"name": "TotalAmount",
+						"name": "Category",
+						"type": "varchar"
+					},
+					{
+						"name": "Price",
 						"type": "decimal",
 						"precision": 10,
 						"scale": 2
 					},
 					{
-						"name": "rank",
+						"name": "TotalProductSalesAmount",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "TotalSalesCount",
 						"type": "int",
 						"precision": 10
 					}
 				],
 				"typeProperties": {
 					"schema": "dbo",
-					"table": "TopCustomers"
+					"table": "RevenuePerProduct"
 				}
 			},
 			"dependsOn": []
@@ -543,7 +553,7 @@
 						"AlterRow1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
-						"          ProductId as integer,",
+						"          ProductID as integer,",
 						"          ProductName as string,",
 						"          Category as string,",
 						"          Price as decimal(10,2),",
@@ -554,18 +564,18 @@
 						"     insertable:false,",
 						"     updateable:false,",
 						"     upsertable:true,",
-						"     keys:['ProductId'],",
+						"     keys:['ProductID'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     errorHandlingOption: 'stopOnFirstError',",
 						"     mapColumn(",
-						"          ProductId = ProductID,",
+						"          ProductID,",
+						"          TotalProductSalesAmount,",
+						"          TotalSalesCount,",
 						"          ProductName,",
 						"          Category,",
-						"          Price,",
-						"          TotalProductSalesAmount,",
-						"          TotalSalesCount",
+						"          Price",
 						"     )) ~> RevenuePerProduct",
 						"AlterRow2 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
@@ -621,7 +631,7 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_topcustomer')]"
+				"[concat(variables('factoryId'), '/datasets/ds_RevenuePerProduct')]"
 			]
 		},
 		{
