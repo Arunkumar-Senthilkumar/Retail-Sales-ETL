@@ -75,7 +75,7 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          CustomerID as double,",
+				"          CustomerID as integer,",
 				"          CustomerName as string,",
 				"          Email as string,",
 				"          Phone as string,",
