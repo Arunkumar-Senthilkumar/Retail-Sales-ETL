@@ -31,6 +31,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "RevenuePerProducttable"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_topcustomer",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
 				}
 			],
 			"sinks": [
@@ -148,6 +155,16 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> RevenuePerProducttable",
+				"source(output(",
+				"          CustomerID as integer,",
+				"          CustomerName as string,",
+				"          TotalAmount as decimal(10,2),",
+				"          rank as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
 				"sales, products join(sales@ProductID == products@ProductID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
@@ -190,7 +207,7 @@
 				"customers aggregate(groupBy(CustomerID),",
 				"     each(match(name!='CustomerID'), $$ = first($$))) ~> aggregate4",
 				"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
-				"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID), true(), false()))) ~> AlterRow1",
+				"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID),true(),false()))) ~> AlterRow1",
 				"derivedColumn1 alterRow(upsertIf(iif(isNull(ProductID),true(),false()))) ~> AlterRow2",
 				"filter1 alterRow(upsertIf(iif(isNull(CustomerID),true(),false()))) ~> AlterRow3",
 				"aggregate1, RevenuePerProducttable lookup(aggregate1@ProductID == RevenuePerProducttable@ProductID,",
