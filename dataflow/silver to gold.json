@@ -234,7 +234,8 @@
 				"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
 				"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID),true(),false()))) ~> AlterRow1",
 				"lookup3 alterRow(upsertIf(iif(isNull(ProductPerformanceTable@ProductId),true(),false()))) ~> AlterRow2",
-				"lookup2 alterRow(upsertIf(iif(isNull(TopCustomersTable@CustomerID),true(),false()))) ~> AlterRow3",
+				"lookup2 alterRow(insertIf(isNull(TopCustomersTable@CustomerID)),",
+				"     updateIf(!isNull(TopCustomersTable@CustomerID))) ~> AlterRow3",
 				"aggregate1, RevenuePerProducttable lookup(aggregate1@ProductID == RevenuePerProducttable@ProductID,",
 				"     multiple: false,",
 				"     pickup: 'any',",
@@ -284,15 +285,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          ProductId = aggregate3@ProductID,",
-				"          ProductName = aggregate3@ProductName,",
-				"          Category = aggregate3@Category,",
-				"          StockQuantity = aggregate3@StockQuantity,",
-				"          TotalQuantitySold = aggregate3@TotalQuantitySold,",
-				"          RemainingStockQuantity = derivedColumn1@RemainingStockQuantity",
-				"     )) ~> ProductPerformance",
+				"     errorHandlingOption: 'stopOnFirstError') ~> ProductPerformance",
 				"AlterRow3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -309,13 +302,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          CustomerID = aggregate2@CustomerID,",
-				"          CustomerName = aggregate2@CustomerName,",
-				"          TotalAmount = aggregate2@TotalAmount,",
-				"          rank = rank1@rank",
-				"     )) ~> TopCustomers"
+				"     errorHandlingOption: 'stopOnFirstError') ~> TopCustomers"
 			]
 		}
 	}
