@@ -314,7 +314,7 @@
 				"     insertable:true,",
 				"     updateable:true,",
 				"     upsertable:true,",
-				"     keys:['CustomerID','CustomerName'],",
+				"     keys:['CustomerID'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
