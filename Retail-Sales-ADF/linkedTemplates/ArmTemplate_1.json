@@ -603,7 +603,8 @@
 						"aggregate3 derive(RemainingStockQuantity = toInteger(StockQuantity-TotalQuantitySold)) ~> derivedColumn1",
 						"lookup1 alterRow(upsertIf(iif(isNull(RevenuePerProducttable@ProductID),true(),false()))) ~> AlterRow1",
 						"lookup3 alterRow(upsertIf(iif(isNull(ProductPerformanceTable@ProductId),true(),false()))) ~> AlterRow2",
-						"lookup2 alterRow(upsertIf(iif(isNull(TopCustomersTable@CustomerID),true(),false()))) ~> AlterRow3",
+						"lookup2 alterRow(insertIf(isNull(TopCustomersTable@CustomerID)),",
+						"     updateIf(!isNull(TopCustomersTable@CustomerID))) ~> AlterRow3",
 						"aggregate1, RevenuePerProducttable lookup(aggregate1@ProductID == RevenuePerProducttable@ProductID,",
 						"     multiple: false,",
 						"     pickup: 'any',",
@@ -678,13 +679,7 @@
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          CustomerID = aggregate2@CustomerID,",
-						"          CustomerName = aggregate2@CustomerName,",
-						"          TotalAmount = aggregate2@TotalAmount,",
-						"          rank = rank1@rank",
-						"     )) ~> TopCustomers"
+						"     errorHandlingOption: 'stopOnFirstError') ~> TopCustomers"
 					]
 				}
 			},
@@ -1039,6 +1034,89 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/sales data to raw')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "silver to gold",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "silver to gold",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"sales": {},
+									"products": {},
+									"customers": {},
+									"RevenuePerProducttable": {},
+									"TopCustomersTable": {},
+									"ProductPerformanceTable": {},
+									"RevenuePerProduct": {},
+									"ProductPerformance": {},
+									"TopCustomers": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/silver to gold')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/schedule trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "sales retail ETL",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Hour",
+						"interval": 1,
+						"startTime": "2025-03-14T23:48:00",
+						"timeZone": "Eastern Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/sales retail ETL')]"
 			]
 		}
 	]
