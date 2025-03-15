@@ -628,14 +628,22 @@
 						"          TotalSalesCount as integer",
 						"     ),",
 						"     deletable:false,",
-						"     insertable:false,",
-						"     updateable:false,",
+						"     insertable:true,",
+						"     updateable:true,",
 						"     upsertable:true,",
 						"     keys:['ProductID'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> RevenuePerProduct",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          ProductID = aggregate1@ProductID,",
+						"          ProductName = aggregate1@ProductName,",
+						"          Category = aggregate1@Category,",
+						"          Price = aggregate1@Price,",
+						"          TotalProductSalesAmount = aggregate1@TotalProductSalesAmount,",
+						"          TotalSalesCount = aggregate1@TotalSalesCount",
+						"     )) ~> RevenuePerProduct",
 						"AlterRow2 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     input(",
@@ -647,8 +655,8 @@
 						"          RemainingStockQuantity as integer",
 						"     ),",
 						"     deletable:false,",
-						"     insertable:false,",
-						"     updateable:false,",
+						"     insertable:true,",
+						"     updateable:true,",
 						"     upsertable:true,",
 						"     keys:['ProductId'],",
 						"     format: 'table',",
@@ -672,14 +680,20 @@
 						"          rank as integer",
 						"     ),",
 						"     deletable:false,",
-						"     insertable:false,",
-						"     updateable:false,",
+						"     insertable:true,",
+						"     updateable:true,",
 						"     upsertable:true,",
-						"     keys:['CustomerID'],",
+						"     keys:['CustomerID','CustomerName'],",
 						"     format: 'table',",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError') ~> TopCustomers"
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          CustomerID = aggregate2@CustomerID,",
+						"          CustomerName = aggregate2@CustomerName,",
+						"          TotalAmount = aggregate2@TotalAmount,",
+						"          rank = rank1@rank",
+						"     )) ~> TopCustomers"
 					]
 				}
 			},
@@ -1034,59 +1048,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/sales data to raw')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "silver to gold",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "silver to gold",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"sales": {},
-									"products": {},
-									"customers": {},
-									"RevenuePerProducttable": {},
-									"TopCustomersTable": {},
-									"ProductPerformanceTable": {},
-									"RevenuePerProduct": {},
-									"ProductPerformance": {},
-									"TopCustomers": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							},
-							"traceLevel": "Fine"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/silver to gold')]"
 			]
 		},
 		{
