@@ -1,0 +1,9 @@
+{
+	"name": "dummy-adf123",
+	"location": "canadacentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "3911adb5-87d9-4ffa-bb03-f9221b50837a",
+		"tenantId": "ff05faeb-f1fd-4af8-9f9f-5541837df902"
+	}
+}
